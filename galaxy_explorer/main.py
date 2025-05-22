@@ -95,12 +95,24 @@ class Game:
                 return True
         return False
 
-    def play_intro(self, triangle_time=3.0, fade_in_time=4, fade_out_time=5.5, game_fade_in_time=5):
+    def play_intro(self,
+                   tri_fade_in_time=3.0,
+                   tri_fade_out_time=0.5,
+                   delay_1_time=0.5,
+                   fade_in_time=4,
+                   delay_2_time=0.5,
+                   fade_out_time=5.5,
+                   delay_3_time=0.5,
+                   game_fade_in_time=5):
         """Display a starting intro with optional fade durations and intro music."""
+        tri_in_frames = int(tri_fade_in_time * settings.FPS)
+        tri_out_frames = int(tri_fade_out_time * settings.FPS)
+        delay_1_frames = int(delay_1_time * settings.FPS)
         fade_in_frames = int(fade_in_time * settings.FPS)
+        delay_2_frames = int(delay_2_time * settings.FPS)
         fade_out_frames = int(fade_out_time * settings.FPS)
+        delay_3_frames = int(delay_3_time * settings.FPS)
         game_fade_frames = int(game_fade_in_time * settings.FPS)
-        triangle_frames = int(triangle_time * settings.FPS)
 
         # Attempt to play the intro music if available
         try:
@@ -117,14 +129,33 @@ class Game:
         triangle_size = min(settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT) // 2
         center = (settings.SCREEN_WIDTH // 2, settings.SCREEN_HEIGHT // 2)
 
-        for i in range(triangle_frames):
+        for i in range(tri_in_frames):
             if self._handle_intro_events():
                 pygame.mixer.music.stop()
                 return
-            alpha = int(255 * (i / triangle_frames))
+            alpha = int(255 * (i / tri_in_frames))
             self.screen.fill(settings.BLACK)
             utils.draw_shiny_triangle(self.screen, center, triangle_size,
-                                      i / triangle_frames, alpha)
+                                      i / tri_in_frames, alpha)
+            pygame.display.flip()
+            self.clock.tick(settings.FPS)
+
+        for i in range(tri_out_frames):
+            if self._handle_intro_events():
+                pygame.mixer.music.stop()
+                return
+            alpha = int(255 * (1 - i / tri_out_frames))
+            self.screen.fill(settings.BLACK)
+            utils.draw_shiny_triangle(self.screen, center, triangle_size,
+                                      i / tri_out_frames, alpha)
+            pygame.display.flip()
+            self.clock.tick(settings.FPS)
+
+        for _ in range(delay_1_frames):
+            if self._handle_intro_events():
+                pygame.mixer.music.stop()
+                return
+            self.screen.fill(settings.BLACK)
             pygame.display.flip()
             self.clock.tick(settings.FPS)
 
@@ -133,11 +164,18 @@ class Game:
                 pygame.mixer.music.stop()
                 return
             alpha = int(255 * (i / fade_in_frames))
-            tri_alpha = int(255 * (1 - i / fade_in_frames))
             text_surf.set_alpha(alpha)
             self.screen.fill(settings.BLACK)
-            utils.draw_shiny_triangle(self.screen, center, triangle_size,
-                                      i / fade_in_frames, tri_alpha)
+            self.screen.blit(text_surf, text_rect)
+            pygame.display.flip()
+            self.clock.tick(settings.FPS)
+
+        for _ in range(delay_2_frames):
+            if self._handle_intro_events():
+                pygame.mixer.music.stop()
+                return
+            text_surf.set_alpha(255)
+            self.screen.fill(settings.BLACK)
             self.screen.blit(text_surf, text_rect)
             pygame.display.flip()
             self.clock.tick(settings.FPS)
@@ -150,6 +188,14 @@ class Game:
             text_surf.set_alpha(alpha)
             self.screen.fill(settings.BLACK)
             self.screen.blit(text_surf, text_rect)
+            pygame.display.flip()
+            self.clock.tick(settings.FPS)
+
+        for _ in range(delay_3_frames):
+            if self._handle_intro_events():
+                pygame.mixer.music.stop()
+                return
+            self.screen.fill(settings.BLACK)
             pygame.display.flip()
             self.clock.tick(settings.FPS)
 
