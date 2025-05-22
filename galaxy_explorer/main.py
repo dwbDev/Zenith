@@ -85,32 +85,50 @@ class Game:
             pygame.quit()
             sys.exit()
 
-    def play_intro(self):
-        """Display a starting intro with fade effects."""
-        fade_frames = int(1.5 * settings.FPS)
+    def _handle_intro_events(self):
+        """Handle events during the intro. Returns True if intro should be skipped."""
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                return True
+        return False
+
+    def play_intro(self, fade_in_time=1.5, fade_out_time=1.5, game_fade_in_time=1.5):
+        """Display a starting intro with optional fade durations and intro music."""
+        fade_in_frames = int(fade_in_time * settings.FPS)
+        fade_out_frames = int(fade_out_time * settings.FPS)
+        game_fade_frames = int(game_fade_in_time * settings.FPS)
+
+        # Attempt to play the intro music if available
+        try:
+            pygame.mixer.music.load("intro.mp3")
+            pygame.mixer.music.play()
+        except Exception as e:
+            print(f"Failed to play intro music: {e}")
+
         big_font = pygame.font.SysFont(None, 120)
         text_surf = big_font.render("Zenith", True, settings.WHITE).convert_alpha()
         text_rect = text_surf.get_rect(center=(settings.SCREEN_WIDTH // 2,
                                               settings.SCREEN_HEIGHT // 2))
 
-        for i in range(fade_frames):
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-            alpha = int(255 * (i / fade_frames))
+        for i in range(fade_in_frames):
+            if self._handle_intro_events():
+                pygame.mixer.music.stop()
+                return
+            alpha = int(255 * (i / fade_in_frames))
             text_surf.set_alpha(alpha)
             self.screen.fill(settings.BLACK)
             self.screen.blit(text_surf, text_rect)
             pygame.display.flip()
             self.clock.tick(settings.FPS)
 
-        for i in range(fade_frames):
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-            alpha = int(255 * (1 - i / fade_frames))
+        for i in range(fade_out_frames):
+            if self._handle_intro_events():
+                pygame.mixer.music.stop()
+                return
+            alpha = int(255 * (1 - i / fade_out_frames))
             text_surf.set_alpha(alpha)
             self.screen.fill(settings.BLACK)
             self.screen.blit(text_surf, text_rect)
@@ -119,22 +137,23 @@ class Game:
 
         overlay = pygame.Surface((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT))
         overlay.fill(settings.BLACK)
-        for i in range(fade_frames):
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
+        for i in range(game_fade_frames):
+            if self._handle_intro_events():
+                pygame.mixer.music.stop()
+                return
             if self.current_view:
                 self.current_view.update(0, pygame.mouse.get_pos(),
                                         pygame.key.get_pressed(), self.frame_count)
                 self.current_view.render(self.screen, pygame.mouse.get_pos(),
                                          self.frame_count)
-            alpha = int(255 * (1 - i / fade_frames))
+            alpha = int(255 * (1 - i / game_fade_frames))
             overlay.set_alpha(alpha)
             self.screen.blit(overlay, (0, 0))
             pygame.display.flip()
             self.clock.tick(settings.FPS)
             self.frame_count += 1
+
+        pygame.mixer.music.stop()
 
     def run(self):
         self.play_intro()
