@@ -95,7 +95,7 @@ class Game:
                 return True
         return False
 
-    def play_intro(self, fade_in_time=1.5, fade_out_time=1.5, game_fade_in_time=1.5, triangle_time=1.0):
+    def play_intro(self, triangle_time=3.0, fade_in_time=4, fade_out_time=5.5, game_fade_in_time=5):
         """Display a starting intro with optional fade durations and intro music."""
         fade_in_frames = int(fade_in_time * settings.FPS)
         fade_out_frames = int(fade_out_time * settings.FPS)
