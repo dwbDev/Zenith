@@ -48,6 +48,31 @@ def draw_text(text, font_type, color, surface, x, y):
         print(f"Font '{font_type}' not available for text: {text}")
 
 
+# --- Intro Graphics ---
+def draw_shiny_triangle(surface, center, size, progress, alpha=255):
+    """Draw a neon green bordered triangle with a moving white sheen."""
+    tri_surf = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
+    half = size // 2
+    pts = [
+        (center[0], center[1] - half),
+        (center[0] - half, center[1] + half),
+        (center[0] + half, center[1] + half)
+    ]
+
+    pygame.draw.polygon(tri_surf, (0, 100, 255), pts)
+    pygame.draw.polygon(tri_surf, settings.GREEN, pts, 4)
+
+    diag_len = int(math.hypot(size * 2, size * 2))
+    offset = int(-diag_len / 2 + progress * diag_len)
+    start = (center[0] - size + offset, center[1] - size)
+    end = (start[0] + diag_len, start[1] + diag_len)
+    width = max(1, size // 8)
+    pygame.draw.line(tri_surf, (255, 255, 255, 180), start, end, width)
+
+    tri_surf.set_alpha(alpha)
+    surface.blit(tri_surf, (0, 0))
+
+
 # --- Star-Field Specifics ---
 _TWINKLE_STARS_DATA = []
 

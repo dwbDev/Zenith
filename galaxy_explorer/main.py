@@ -95,11 +95,12 @@ class Game:
                 return True
         return False
 
-    def play_intro(self, fade_in_time=1.5, fade_out_time=1.5, game_fade_in_time=1.5):
+    def play_intro(self, fade_in_time=1.5, fade_out_time=1.5, game_fade_in_time=1.5, triangle_time=1.0):
         """Display a starting intro with optional fade durations and intro music."""
         fade_in_frames = int(fade_in_time * settings.FPS)
         fade_out_frames = int(fade_out_time * settings.FPS)
         game_fade_frames = int(game_fade_in_time * settings.FPS)
+        triangle_frames = int(triangle_time * settings.FPS)
 
         # Attempt to play the intro music if available
         try:
@@ -113,13 +114,30 @@ class Game:
         text_rect = text_surf.get_rect(center=(settings.SCREEN_WIDTH // 2,
                                               settings.SCREEN_HEIGHT // 2))
 
+        triangle_size = min(settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT) // 2
+        center = (settings.SCREEN_WIDTH // 2, settings.SCREEN_HEIGHT // 2)
+
+        for i in range(triangle_frames):
+            if self._handle_intro_events():
+                pygame.mixer.music.stop()
+                return
+            alpha = int(255 * (i / triangle_frames))
+            self.screen.fill(settings.BLACK)
+            utils.draw_shiny_triangle(self.screen, center, triangle_size,
+                                      i / triangle_frames, alpha)
+            pygame.display.flip()
+            self.clock.tick(settings.FPS)
+
         for i in range(fade_in_frames):
             if self._handle_intro_events():
                 pygame.mixer.music.stop()
                 return
             alpha = int(255 * (i / fade_in_frames))
+            tri_alpha = int(255 * (1 - i / fade_in_frames))
             text_surf.set_alpha(alpha)
             self.screen.fill(settings.BLACK)
+            utils.draw_shiny_triangle(self.screen, center, triangle_size,
+                                      i / fade_in_frames, tri_alpha)
             self.screen.blit(text_surf, text_rect)
             pygame.display.flip()
             self.clock.tick(settings.FPS)
